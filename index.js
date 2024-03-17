@@ -2,7 +2,7 @@ const defaultApiUrl = 'https://api.github.com/repos/PHPCSStandards/PHP_CodeSniff
 const defaultBranch = 'master';
 const standardsPath = 'src/Standards';
 
-let formatData = (data, value, text) => {
+let formatDataToSelect = (data, value, text) => {
     if (!data) {
         return [];
     };
@@ -17,16 +17,62 @@ let formatData = (data, value, text) => {
     return dataFormatted;
 }
 
-fetch(`${defaultApiUrl}${standardsPath}?ref=${defaultBranch}`)
-    .then(response => {
-        return response.json();
-    })
-    .then(standards => {
-        $("#standards-select").select2({
-            data: formatData(standards, 'name', 'name')
-        });
-    })
-    .catch(error => {
-        console.error('Error: ', error);
-    });
+const getAllStandards = async () => {
+    try {
+        const response = await fetch(`${defaultApiUrl}${standardsPath}?ref=${defaultBranch}`);
+        const data = await response.json();
 
+        return data;
+    } catch (error) {
+        console.error('Error: ', error);
+    }
+}
+
+const getAllSniffsTypesByStandard = async () => {
+    try {
+        standards = await getAllStandards();
+
+        return standards.map(async standard => {
+            const allSniffsTypesByStandardRequest = await fetch(`${defaultApiUrl}${standardsPath}/${standard.name}/Sniffs?ref=${defaultBranch}`);
+            const allSniffsTypesByStandardResponse = await allSniffsTypesByStandardRequest.json();
+
+            return allSniffsTypesByStandardResponse.map(async sniffType => {
+                return {
+                    standard: standard.name,
+                    sniffType: sniffType.name
+                };
+            });
+        });
+    } catch (error) {
+        console.error('Error: ', error);
+    }
+}
+
+
+const buildTable = async () => {
+    let allSniffsTypesByStandard = await getAllSniffsTypesByStandard();
+
+};
+buildTable();
+// Generic.Arrays
+// Generic.Classes
+// https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/contents/src/Standards/{Padrão}/Sniffs?ref=master
+
+// Pegamos todos os standards, que ira retornar (Generic, MySource)
+// Vamos criar um objeto de acordo com o standard e preencher com todas as suas settings
+// Vamos criar um objeto de acordo com o standard => settings e listar todas as rules.
+
+//fetch(`${defaultApiUrl}${standardsPath}?ref=${defaultBranch}`)
+//    .then(response => {
+//        return response.json();
+//    })
+//    .then(standards => {
+//        $("#standards-select").select2({
+//            data: formatData(standards, 'name', 'name')
+//        });
+//    })
+//    .catch(error => {
+//        console.error('Error: ', error);
+//    });
+
+// Vamos carregar todos os dados e depois separar
