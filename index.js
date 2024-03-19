@@ -1,4 +1,4 @@
-const defaultApiUrl = 'https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/contents/';
+const defaultApiUrl = 'https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/contents';
 const defaultBranch = 'master';
 const standardsPath = 'src/Standards';
 
@@ -19,7 +19,7 @@ let formatDataToSelect = (data, value, text) => {
 
 const getAllStandards = async () => {
     try {
-        const response = await fetch(`${defaultApiUrl}${standardsPath}?ref=${defaultBranch}`);
+        const response = await fetch(`${defaultApiUrl}/${standardsPath}?ref=${defaultBranch}`);
         const data = await response.json();
 
         return data;
@@ -31,29 +31,24 @@ const getAllStandards = async () => {
 const getAllSniffsTypesByStandard = async () => {
     try {
         standards = await getAllStandards();
+        let allSniffsTypesByStandard = {};
 
-        return standards.map(async standard => {
-            const allSniffsTypesByStandardRequest = await fetch(`${defaultApiUrl}${standardsPath}/${standard.name}/Sniffs?ref=${defaultBranch}`);
+        return await Promise.all(standards.map(async standard => {
+            const allSniffsTypesByStandardRequest = await fetch(`${defaultApiUrl}/${standardsPath}/${standard.name}/Sniffs?ref=${defaultBranch}`);
             const allSniffsTypesByStandardResponse = await allSniffsTypesByStandardRequest.json();
 
-            return allSniffsTypesByStandardResponse.map(async sniffType => {
+            return await Promise.all(allSniffsTypesByStandardResponse.map(async sniffType => {
                 return {
                     standard: standard.name,
                     sniffType: sniffType.name
-                };
-            });
-        });
+                }
+            }))
+        }));
+
     } catch (error) {
         console.error('Error: ', error);
     }
 }
-
-
-const buildTable = async () => {
-    let allSniffsTypesByStandard = await getAllSniffsTypesByStandard();
-
-};
-buildTable();
 // Generic.Arrays
 // Generic.Classes
 // https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/contents/src/Standards/{Padrão}/Sniffs?ref=master
