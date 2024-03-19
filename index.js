@@ -1,6 +1,9 @@
 const defaultApiUrl = 'https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/contents';
 const defaultBranch = 'master';
 const standardsPath = 'src/Standards';
+const $standardsSelect = $("#standards-select");
+const $sniffsTypesSelect = $("#sniffs-types-select");
+let allSniffsTypesByStandard = {};
 
 let formatDataToSelect = (data, value, text) => {
     if (!data) {
@@ -31,9 +34,8 @@ const getAllStandards = async () => {
 const getAllSniffsTypesByStandard = async () => {
     try {
         standards = await getAllStandards();
-        let allSniffsTypesByStandard = {};
 
-        return await Promise.all(standards.map(async standard => {
+        allSniffsTypesByStandard = await Promise.all(standards.map(async standard => {
             const allSniffsTypesByStandardRequest = await fetch(`${defaultApiUrl}/${standardsPath}/${standard.name}/Sniffs?ref=${defaultBranch}`);
             const allSniffsTypesByStandardResponse = await allSniffsTypesByStandardRequest.json();
 
@@ -49,25 +51,36 @@ const getAllSniffsTypesByStandard = async () => {
         console.error('Error: ', error);
     }
 }
-// Generic.Arrays
-// Generic.Classes
-// https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/contents/src/Standards/{Padrão}/Sniffs?ref=master
 
-// Pegamos todos os standards, que ira retornar (Generic, MySource)
-// Vamos criar um objeto de acordo com o standard e preencher com todas as suas settings
-// Vamos criar um objeto de acordo com o standard => settings e listar todas as rules.
+const fillStandardsSelect = async () => {
+    try {
+        const standards = await getAllStandards();
 
-//fetch(`${defaultApiUrl}${standardsPath}?ref=${defaultBranch}`)
-//    .then(response => {
-//        return response.json();
-//    })
-//    .then(standards => {
-//        $("#standards-select").select2({
-//            data: formatData(standards, 'name', 'name')
-//        });
-//    })
-//    .catch(error => {
-//        console.error('Error: ', error);
-//    });
+        $standardsSelect.select2({
+            data: formatDataToSelect(standards, 'name', 'name')
+        });
+        $standardsSelect.trigger('change');
+    } catch (error) {
+        console.error('Error: ', error);
+    }
+};
 
-// Vamos carregar todos os dados e depois separar
+getAllSniffsTypesByStandard();
+fillStandardsSelect();
+
+$standardsSelect.on('change', async function () {
+    if (!allSniffsTypesByStandard) {
+        return;
+    }
+    $sniffsTypesSelect.select2().empty();
+
+    let selectedStandard = $standardsSelect.val();
+
+    let sniffsTypesByStandard = allSniffsTypesByStandard.filter(standard => {
+        return standard[0].standard === selectedStandard;
+    });
+
+    $sniffsTypesSelect.select2({
+        data: formatDataToSelect(sniffsTypesByStandard[0], 'sniffType', 'sniffType')
+    });
+});
