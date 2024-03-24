@@ -68,7 +68,7 @@ const fillStandardsSelect = async () => {
 getAllSniffsTypesByStandard();
 fillStandardsSelect();
 
-$standardsSelect.on('change', async function () {
+$standardsSelect.on('change', async () => {
     if (!allSniffsTypesByStandard) {
         return;
     }
@@ -84,3 +84,22 @@ $standardsSelect.on('change', async function () {
         data: formatDataToSelect(sniffsTypesByStandard[0], 'sniffType', 'sniffType')
     });
 });
+
+$sniffsTypesSelect.on('change', async () => {
+    let selectedStandard = $standardsSelect.val();
+    let selectedSniffType = $sniffsTypesSelect.val();
+
+    let sniffsByTypeAndStandardRequest = await fetch(`${defaultApiUrl}/${standardsPath}/${selectedStandard}/Sniffs/${selectedSniffType}?ref=${defaultBranch}`);
+    let sniffsByTypeAndStandardResponse = await sniffsByTypeAndStandardRequest.json();
+
+    $('#sniffs-table').DataTable({
+        data: await sniffsByTypeAndStandardResponse,
+        columns: [
+            { ata: 'name' }
+        ]
+    });
+});
+
+// obeto->download_url = https://raw.githubusercontent.com/PHPCSStandards/PHP_CodeSniffer/master/src/Standards/PSR1/Sniffs/Files/SideEffectsSniff.php
+// objeto->name = SideEffectsSniff.php;
+// Name - button to open modal with description - checkbox
