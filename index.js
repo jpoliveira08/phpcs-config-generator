@@ -90,6 +90,14 @@ $('#sniffs-group-select').on('change', async function (e) {
                 {
                     data: 'description',
                     targets: 1
+                },
+                {
+                    data: null,
+                    render: (data, type, row) => {
+                        return '<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#sniff_example"><i class="fa-regular fa-eye"></i></button>'
+                    },
+                    targets: 2,
+                    className: "text-center"
                 }
             ]
         })
